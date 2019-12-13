@@ -1,0 +1,17 @@
+jira_transfer_logged_time.form:
+  path: '/jira_auth'
+  defaults:
+    _form: '\Drupal\jira_transfer_logged_time\Form\JiraAuthForm'
+    _title: 'Jira Authentication Form'
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.transfer_form:
+  path: '/jira_transfer'
+  defaults:
+     _form: '\Drupal\jira_transfer_logged_time\Form\TransferJiraForm'
+     _title: 'Jira Transfer Form'
+  requirements:
+     _permission: 'access content'
+     _user_is_logged_in: 'true'

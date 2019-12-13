@@ -1,0 +1,15 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\jira_transfer_logged_time\Controller\JiraTransferController;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function jira_transfer_logged_time_form_jira_transfer_logged_time_form_alter(&$form, FormStateInterface $form_state, $form_id)
+{
+
+}
