@@ -1,4 +1,4 @@
 name: Jira Transfer Logged Time Module
 type: module
 core: 8.x
-description: Module that transfers logged time from one Jira instance to another one
+description: Module that transfers logged time from one Jira instance to another

@@ -1,0 +1,348 @@
+{#
+/**
+ * - initial_data: {
+ *    jira_email,
+ *    jira_token,
+ *    source_jira_namespace,
+ *    target_jira_namespace
+ * }
+ */
+#}
+
+{% verbatim %}
+<div id="jira">
+  <p>Select project from the source JIRA:</p>
+  <select v-model="source_project" @change="checked_all = false">
+    <option v-for="project in projects.source" :value="project.key">{{ project.name }}</option>
+  </select>
+  <br v-if="source_project">
+  <br v-if="source_project">
+  <p v-if="source_project">Select the starting date (included) for the worklogs:</p>
+  <input v-if="source_project" type="date" v-model="from" @change="dateFromWasChanged($event.target.value)">
+  <br v-if="source_project">
+  <br v-if="source_project">
+  <p v-if="source_project">Select the end date (included) for the worklogs:</p>
+  <input v-if="source_project" type="date" v-model="to" @change="dateToWasChanged($event.target.value)">
+  <br v-if="source_project">
+  <br v-if="source_project">
+  <p v-if="source_project">Select user from the source JIRA:</p>
+  <div v-if="source_project" v-for="project in projects.source">
+    <select v-if="project.key === source_project" v-model="source_user" @change="checked_all = false">
+      <option v-for="user in project.users" :value="user.accountId">{{ user.displayName }}</option>
+    </select>
+  </div>
+  <table v-if="source_user && source_project">
+    <thead>
+      <tr v-for="heading in table_data.headings">
+        <th>
+          <input type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all">
+        </th>
+        <th>{{ heading[1] }}</th>
+        <th>{{ heading[2] }}</th>
+        <th>{{ heading[3] }}</th>
+        <th>{{ heading[4] }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(row, row_index) in worklogs">
+        <td>
+          <input type="checkbox" :checked="row.checked" @input="rowWasClicked(row_index)">
+        </td>
+        <td>
+          {{ row.worklogId }}
+        </td>
+        <td>
+          {{ row.taskId }}
+        </td>
+        <td>
+          {{ row.taskDescription }}
+        </td>
+        <td>
+          {{ row.loggedTime }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br v-if="any_checked">
+  <br v-if="any_checked">
+  <p v-if="any_checked">Select project from the target JIRA:</p>
+  <select v-if="any_checked" v-model="target_project">
+    <option v-for="target_project in projects.target" :value="target_project.key">{{ target_project.name }}</option>
+  </select>
+  <br v-if="target_project">
+  <br v-if="target_project">
+  <p v-if="target_project">Select issue from the target JIRA:</p>
+  <div v-if="target_project" v-for="project in projects.target">
+    <select v-if="project.key === target_project" v-model="target_issue">
+      <option v-for="issue in project.issues" :value="issue.id">{{ issue.key }}</option>
+    </select>
+  </div>
+  <br v-if="target_issue">
+  <br v-if="target_issue">
+  <p v-if="target_issue">Select user from the target JIRA:</p>
+  <div v-if="target_issue" v-for="project in projects.target">
+    <select v-if="project.key === target_project" v-model="target_user">
+      <option v-for="user in project.users" :value="user.accountId">{{ user.displayName }}</option>
+    </select>
+  </div>
+  <br v-if="target_user">
+  <br v-if="target_user">
+  <p v-if="target_user">Email of the user you wish to log time:</p>
+  <input v-if="target_user" type="email" v-model="target_email">
+  <br v-if="target_email">
+  <br v-if="target_email">
+  <p v-if="target_email">Token of the user you wish to log time:</p>
+  <input v-if="target_email" type="text" v-model="target_token">
+  <br v-if="target_email && target_token">
+  <br v-if="target_email && target_token">
+  <button v-if="target_email && target_token" @click="submit">Submit</button>
+  <div v-if="wait" style="position: fixed;top: 50%;left: 50%;transform: translate(-50%, -50%);width: 20vw;height:20vh;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center"></div>
+</div>
+{% endverbatim %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function(event) {
+    new Vue({
+      el: '#jira',
+      data: {
+        projects: [],
+        host: {{ initial_data | raw }}.host,
+        email: {{ initial_data | raw }}.jira_email,
+        token: {{ initial_data | raw }}.jira_token,
+        source_namespace: {{ initial_data | raw }}.source_jira_namespace,
+        target_namespace: {{ initial_data | raw }}.target_jira_namespace,
+        source_project: null,
+        from: null,
+        to: null,
+        source_user: null,
+        target_project: null,
+        target_issue: null,
+        target_user: null,
+        target_email: '',
+        target_token: '',
+        checked_all: false,
+        wait: false,
+        any_checked: false
+      },
+      created() {
+        this.wait = true
+        let time = new Date()
+        this.to = time.toISOString().slice(0, 10)
+        time.setMonth(time.getMonth() - 1);
+        this.from = time.toISOString().slice(0, 10)
+
+        axios.get(`./jira/projects-from-to?&from=${this.from}&to=${this.to}`)
+        .then(response => {
+          this.projects = response.data
+          this.init()
+        })
+      },
+      computed: {
+        worklogs() {
+          worklogs = []
+          if (this.source_project && this.source_user) {
+            this.projects.source.map(project => {
+              if (project.key === this.source_project) {
+                project.users.map(user => {
+                  if (user.accountId === this.source_user) {
+                    project.worklogs.map(worklogs_array => {
+                      worklogs_array.map(worklog => {
+                        if (worklog.accountId === this.source_user) {
+                          worklogs.push({
+                            worklogId: worklog.id,
+                            loggedTime: worklog.timeSpent,
+                            checked: worklog.checked
+                          })
+                        }
+                      })
+                    })
+                  }
+                })
+                project.issues.map(issue => {
+                  project.worklogs.map(worklogs_array => {
+                    worklogs_array.map(worklog_from_array => {
+                      if (worklog_from_array.issueId === issue.id) {
+                        worklogs.map(worklog => {
+                          let text
+                          try {
+                            text = worklog_from_array.comment.content[0].content[0].text
+                          } catch (e) {
+                            text = ''
+                          }
+                          worklog.taskId = issue.id
+                          worklog.taskDescription = text
+                        })
+                      }
+                    })
+                  })
+                })
+              }
+            })
+          }
+          return worklogs
+        },
+        table_data() {
+          return {
+            headings: [[null, 'Worklog ID', 'Task ID', 'Task Description', 'Logged Time']]
+          }
+        }
+      },
+      methods: {
+        handleCheckAllCheckbox() {
+          this.checked_all = !this.checked_all
+          if (this.checked_all) {
+            this.worklogs.map(row => row.checked = true)
+            this.any_checked = true
+          } else {
+            this.worklogs.map(row => row.checked = false)
+            this.any_checked = false
+          }
+        },
+        rowWasClicked(row_index) {
+          this.checked_all = !this.checked_all
+          this.checked_all = !this.checked_all
+          this.worklogs.map((row, index) =>{
+            if (index === row_index) {
+              row.checked = !row.checked
+            }
+          })
+          const turn_off_checked_all = this.worklogs.some(row => row.checked === false)
+          if (turn_off_checked_all) {
+            this.checked_all = false
+          }
+          const turn_on_checked_all = this.worklogs.every(row => row.checked === true)
+          if (turn_on_checked_all) {
+            this.checked_all = true
+          }
+          const turn_on_any_checked = this.worklogs.some(row => row.checked === true)
+          if (turn_on_any_checked) {
+            this.any_checked = true
+          } else {
+            this.any_checked = false
+          }
+        },
+        submit() {
+          const agree = confirm("Log selected times in target JIRA?");
+          if (agree) {
+            const worklogs = []
+            this.projects.source.map(project => {
+              if (project.key === this.source_project) {
+                project.worklogs.map(worklogs_array => {
+                  worklogs_array.map(worklog => {
+                    this.worklogs.map(computed_worklog => {
+                      if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
+                        worklogs.push(worklog)
+                      }
+                    })
+                  })
+                })
+              }
+            })
+            if (this.target_namespace, this.target_project, this.target_issue, this.target_user, this.target_email, this.target_token, this.any_checked) {
+              const data = {
+                namespace: this.target_namespace,
+                project: this.target_project,
+                issue: this.target_issue,
+                user: this.target_user,
+                email: this.target_email,
+                token: this.target_token,
+                worklogs: worklogs
+              }
+              this.wait = true
+              axios
+                .post(`./jira/submit`, data)
+                .then(response => {
+                  this.wait = false
+                  alert(response.data)
+                })
+            } else {
+              alert('Incorrect or incomplete data!')
+            }
+          }
+        },
+        init(new_from = null, new_to = null) {
+          this.projects.source.map(source => {
+            source.users.unshift({
+              accountId: null,
+              displayName: '- Select -'
+            })
+            source.worklogs.map(worklogs_array => {
+              worklogs_array.map(worklog => worklog.checked = false)
+            })
+          })
+          this.projects.source.unshift({
+            key: null,
+            name: '- Select -',
+            users: [
+              {
+                accountId: null,
+                displayName: '- Select -'
+              }
+            ]
+          })
+          this.projects.target.map(target => {
+            target.users.unshift({
+              accountId: null,
+              displayName: '- Select -'
+            })
+            target.issues.unshift({
+              id: null,
+              key: '- Select -'
+            })
+            target.worklogs.map(worklogs_array => {
+              worklogs_array.map(worklog => worklog.checked = false)
+            })
+          })
+          this.projects.target.unshift({
+            key: null,
+            name: '- Select -',
+            users: [
+              {
+                accountId: null,
+                displayName: '- Select -'
+              }
+            ],
+            issues: [
+              {
+                id: null,
+                key: '- Select -'
+              }
+            ]
+          })
+          if (new_to) {
+            this.to = new_to
+          } else {
+            let time = new Date()
+            this.to = time.toISOString().slice(0, 10)
+          }
+          if (new_from) {
+            this.from = new_from
+          } else {
+            let time = new Date()
+            time.setMonth(time.getMonth() - 1);
+            this.from = time.toISOString().slice(0, 10)
+          }
+          this.wait = false
+        },
+        dateFromWasChanged(value) {
+          this.wait = true
+          this.from = value
+          axios.get(`./jira/projects-from-to?&from=${this.from}&to=${this.to}`)
+          .then(response => {
+            this.projects = response.data
+            this.init(this.from, this.to)
+          })
+        },
+        dateToWasChanged(value) {
+          this.wait = true
+          this.to = value
+          axios.get(`./jira/projects-from-to?&from=${this.from}&to=${this.to}`)
+          .then(response => {
+            this.projects = response.data
+            this.init(this.from, this.to)
+          })
+        }
+      }
+    })
+  })
+</script>

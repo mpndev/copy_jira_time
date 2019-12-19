@@ -7,11 +7,38 @@ jira_transfer_logged_time.form:
     _permission: 'access content'
     _user_is_logged_in: 'true'
 
-jira_transfer_logged_time.transfer_form:
-  path: '/jira_transfer'
+jira_transfer_logged_time.jira:
+  path: '/jira'
   defaults:
-     _form: '\Drupal\jira_transfer_logged_time\Form\TransferJiraForm'
-     _title: 'Jira Transfer Form'
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::index'
+    _title: 'Jira'
   requirements:
-     _permission: 'access content'
-     _user_is_logged_in: 'true'
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-projects:
+  path: '/jira/projects'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraTransferController::getJiraProjects'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-projects-from-to:
+  path: '/jira/projects-from-to'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::projectsFromTo'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-submit:
+  path: '/jira/submit'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraTransferController::submit'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
