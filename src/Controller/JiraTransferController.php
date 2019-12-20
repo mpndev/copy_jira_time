@@ -59,6 +59,9 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     return $projects_array;
   }
 
+  /**
+   * @return array
+   */
   public function getJiraIssues(){
     $user_id = \Drupal::currentUser()->id();
     $user_data = \Drupal::service('user.data');
@@ -104,6 +107,9 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     return $issues_array;
   }
 
+  /**
+   * @return array
+   */
   public function getJiraIssuesWorklogs(){
     $user_id = \Drupal::currentUser()->id();
     $user_data = \Drupal::service('user.data');
@@ -159,6 +165,9 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     return $worklogs;
   }
 
+  /**
+   * @return array
+   */
   public function getJiraUsers(){
     $user_id = \Drupal::currentUser()->id();
     $user_data = \Drupal::service('user.data');
