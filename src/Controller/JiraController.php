@@ -30,6 +30,38 @@ class JiraController extends ControllerBase {
   /**
    * @return \Drupal\Core\Ajax\AjaxResponse
    */
+  public function getJiraProjects() {
+    $projects = (new JiraTransferController())->getJiraProjects();
+    return new AjaxResponse($projects);
+  }
+
+  /**
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   */
+  public function getJiraUsers() {
+    $users = (new JiraTransferController())->getJiraUsers();
+    return new AjaxResponse($users);
+  }
+
+  /**
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   */
+  public function getJiraIssues() {
+    $issues = (new JiraTransferController())->getJiraIssues();
+    return new AjaxResponse($issues);
+  }
+
+  /**
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   */
+  public function getJiraIssuesWorklogs() {
+    $issues_worklogs = (new JiraTransferController())->getJiraIssuesWorklogs();
+    return new AjaxResponse($issues_worklogs);
+  }
+
+  /**
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   */
   public function projectsFromTo() {
     $projects = (new JiraTransferController())->getJiraProjects();
     return new AjaxResponse($projects);

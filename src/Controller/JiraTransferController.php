@@ -13,10 +13,6 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
    * @return array
    */
   public function getJiraProjects(){
-    $projects = [
-      'source' => [],
-      'target' => [],
-    ];
     $user_id = \Drupal::currentUser()->id();
     $user_data = \Drupal::service('user.data');
     $jira_email = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_email');
@@ -24,10 +20,11 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     $source_jira_namespace = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_source_namespace');
     $target_jira_namespace = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_target_namespace');
 
-    $projects['source'] = $this->requestJiraProjects($source_jira_namespace, $jira_email, $jira_token);
-    $projects['target'] = $this->requestJiraProjects($target_jira_namespace, $jira_email, $jira_token);
+    $http_params = \Drupal::request()->query->all();
+    $namespaces = ['source' => $source_jira_namespace, 'target' => $target_jira_namespace];
+    $namespace = $namespaces[$http_params['prefix']];
 
-    return $projects;
+    return $this->requestJiraProjects($namespace, $jira_email, $jira_token);
   }
 
   /**
@@ -53,12 +50,6 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     $total_projects = $response->body->total;
     if ($total_projects > $start_at) {
       foreach ($response->body->values as $project) {
-        $project->issues = $this->requestJiraIssues($namespace, $jira_email, $jira_token, $project->key);
-        $project->users = $this->requestJiraUsers($namespace, $jira_email, $jira_token);
-        $project->worklogs = [];
-        foreach ($project->issues as $issue_key => $issue) {
-          $project->worklogs[] = $this->requestJiraIssuesWorklogs($namespace, $jira_email, $jira_token, $project->users, $issue->key);
-        }
         $projects_array[] = $project;
       }
       $start_at += 50;
@@ -66,6 +57,19 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     }
 
     return $projects_array;
+  }
+
+  public function getJiraIssues(){
+    $user_id = \Drupal::currentUser()->id();
+    $user_data = \Drupal::service('user.data');
+    $email = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_email');
+    $token = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_token');
+
+    $http_params = \Drupal::request()->query->all();
+    $namespace = $http_params['prefix'];
+    $project_key = $http_params['project_key'];
+
+    return $this->requestJiraIssues($namespace, $email, $token, $project_key);
   }
 
   /**
@@ -100,19 +104,34 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     return $issues_array;
   }
 
+  public function getJiraIssuesWorklogs(){
+    $user_id = \Drupal::currentUser()->id();
+    $user_data = \Drupal::service('user.data');
+    $email = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_email');
+    $token = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_token');
+
+    $http_params = \Drupal::request()->query->all();
+    $namespace = $http_params['prefix'];
+    $users_accounts_ids = $http_params['users_accounts_ids'];
+    $issue_key = $http_params['issue_key'];
+    $start_date = \Drupal::request()->query->get('from') ? \Drupal::request()->query->get('from') : date('Y-m-d', strtotime('-1 month'));
+    $end_date = \Drupal::request()->query->get('to') ? \Drupal::request()->query->get('to') : date('Y-m-d');
+
+    return $this->requestJiraIssuesWorklogs($namespace, $email, $token, $users_accounts_ids, $issue_key, $start_date, $end_date);
+  }
+
   /**
    * @param $namespace
    * @param $jira_email
    * @param $jira_token
-   * @param $users
+   * @param $users_accounts_ids
    * @param $issue_key
+   * @param $start_date
+   * @param $end_date
    *
    * @return array
    */
-  public function requestJiraIssuesWorklogs($namespace, $jira_email, $jira_token, $users, $issue_key) {
-    $start_date = \Drupal::request()->query->get('from') ? \Drupal::request()->query->get('from') : date('Y-m-d', strtotime('-1 month'));
-    $end_date = \Drupal::request()->query->get('to') ? \Drupal::request()->query->get('to') : date('Y-m-d');
-
+  public function requestJiraIssuesWorklogs($namespace, $jira_email, $jira_token, $users_accounts_ids, $issue_key, $start_date, $end_date) {
     $worklogs = [];
     $headers = [
       'Accept' => 'application/json',
@@ -128,16 +147,28 @@ class JiraTransferController extends  ControllerBase implements ContainerInjecti
     foreach ($response->body->worklogs as $worklog) {
       $created = date("Y-m-d", strtotime($worklog->created));
       if ($created >= $start_date && $created <= $end_date) {
-        foreach ($users as $user) {
-          if (!empty($worklog->author->accountId) && $worklog->author->accountId === $user->accountId) {
+        foreach (explode(',', $users_accounts_ids) as $account_id) {
+          if (!empty($worklog->author->accountId) && $worklog->author->accountId === $account_id) {
             $worklog->issueKey = $issue_key;
-            $worklog->accountId = $user->accountId;
+            $worklog->accountId = $account_id;
             $worklogs[] = $worklog;
           }
         }
       }
     }
     return $worklogs;
+  }
+
+  public function getJiraUsers(){
+    $user_id = \Drupal::currentUser()->id();
+    $user_data = \Drupal::service('user.data');
+    $email = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_email');
+    $token = $user_data->get('jira_transfer_logged_time', $user_id, 'jira_account_token');
+
+    $http_params = \Drupal::request()->query->all();
+    $namespace = $http_params['prefix'];
+
+    return $this->requestJiraUsers($namespace, $email, $token);
   }
 
   /**

@@ -11,10 +11,18 @@
 
 {% verbatim %}
 <div id="jira">
+
   <p>Select project from the source JIRA:</p>
-  <select v-model="source_project" @change="checked_all = false">
-    <option v-for="project in projects.source" :value="project.key">{{ project.name }}</option>
-  </select>
+  <div v-if="are_projects_loading">
+    <div style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
+  </div>
+  <div v-else>
+    <select v-model="source_project" @change="checked_all = false">
+      <option v-once :value="null">- Select -</option>
+      <option v-for="project in projects.source" :value="project.key">{{ project.name }}</option>
+    </select>
+  </div>
+
   <br v-if="source_project">
   <br v-if="source_project">
   <p v-if="source_project">Select the starting date (included) for the worklogs:</p>
@@ -25,17 +33,33 @@
   <input v-if="source_project" type="date" v-model="to" @change="dateToWasChanged($event.target.value)">
   <br v-if="source_project">
   <br v-if="source_project">
+
   <p v-if="source_project">Select user from the source JIRA:</p>
   <div v-if="source_project" v-for="project in projects.source">
-    <select v-if="project.key === source_project" v-model="source_user" @change="checked_all = false">
-      <option v-for="user in project.users" :value="user.accountId">{{ user.displayName }}</option>
-    </select>
+    <div v-if="are_users_loading">
+      <div style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
+    </div>
+    <div v-else>
+      <select v-if="project.key === source_project" v-model="source_user" @change="checked_all = false">
+        <option v-once :value="null">- Select -</option>
+        <option v-for="user in project.users" :value="user.accountId">{{ user.displayName }}</option>
+      </select>
+    </div>
   </div>
+
   <table v-if="source_user && source_project">
     <thead>
       <tr v-for="heading in table_data.headings">
         <th>
-          <input type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all">
+          <div style="display: inline-block">
+            <label for="select-all">select all</label>
+            <input id="select-all" type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all">
+          </div>
+          <div style="display: inline-block;border-left:1px solid #fff;padding-left:10px;margin-left:10px">
+            <label for="select-not-duplicated">select all not duplicated</label>
+            <input id="select-not-duplicated" type="checkbox" @change="handleCheckAllNotDuplicatedCheckbox()"
+            :checked="checked_all_not_duplicated">
+          </div>
         </th>
         <th>{{ heading[1] }}</th>
         <th>{{ heading[2] }}</th>
@@ -44,7 +68,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(row, row_index) in worklogs">
+      <tr v-for="(row, row_index) in worklogs" :style="row.is_duplicate ? {backgroundColor:'orange'} : ''">
         <td>
           <input type="checkbox" :checked="row.checked" @input="rowWasClicked(row_index)">
         </td>
@@ -121,20 +145,46 @@
         target_email: '',
         target_token: '',
         checked_all: false,
+        checked_all_not_duplicated: true,
+        any_checked: false,
         wait: false,
-        any_checked: false
+        are_projects_loading: true,
+        are_users_loading: true,
+        are_issues_loading: true,
+        are_worklogs_loading: true
       },
       created() {
-        this.wait = true
         let time = new Date()
         this.to = time.toISOString().slice(0, 10)
         time.setMonth(time.getMonth() - 1);
         this.from = time.toISOString().slice(0, 10)
 
-        axios.get(`./jira/projects-from-to?&from=${this.from}&to=${this.to}`)
+        axios.get(`./jira/projects?prefix=source`)
         .then(response => {
-          this.projects = response.data
-          this.init()
+          this.projects.source = response.data
+          this.are_projects_loading = false
+          this.projects.source.map(project => {
+            axios.get(`./jira/users?prefix=${this.source_namespace}`)
+            .then(response => {
+              project.users = response.data
+              this.are_users_loading = false
+              project.users.map(user => {
+                axios.get(`./jira/issues?prefix=${this.source_namespace}&project_key=${project.key}`)
+                .then(response => {
+                  user.issues = response.data
+                  this.are_issues_loading = false
+                  user.issues.map(issue => {
+                    const users_accounts_ids = project.users.map(user => user = user.accountId)
+                    axios.get(`./jira/issues-worklogs?prefix=${this.source_namespace}&issue_key=${issue.key}&users_accounts_ids=${users_accounts_ids}&start_date=${this.from}&end_date=${this.to}`)
+                    .then(response => {
+                      issue.worklogs = response.data
+                      this.are_worklogs_loading = false
+                    })
+                  })
+                })
+              })
+            })
+          })
         })
       },
       computed: {
@@ -143,37 +193,30 @@
           if (this.source_project && this.source_user) {
             this.projects.source.map(project => {
               if (project.key === this.source_project) {
-                project.users.map(user => {
-                  if (user.accountId === this.source_user) {
-                    project.worklogs.map(worklogs_array => {
-                      worklogs_array.map(worklog => {
-                        if (worklog.accountId === this.source_user) {
-                          worklogs.push({
-                            worklogId: worklog.id,
-                            loggedTime: worklog.timeSpent,
-                            checked: worklog.checked
-                          })
-                        }
-                      })
-                    })
-                  }
-                })
                 project.issues.map(issue => {
-                  project.worklogs.map(worklogs_array => {
-                    worklogs_array.map(worklog_from_array => {
-                      if (worklog_from_array.issueId === issue.id) {
-                        worklogs.map(worklog => {
-                          let text
-                          try {
-                            text = worklog_from_array.comment.content[0].content[0].text
-                          } catch (e) {
-                            text = ''
+                  project.users.map(user => {
+                    if (user.accountId === this.source_user) {
+                      project.worklogs.map(worklogs_array => {
+                        worklogs_array.map(worklog => {
+                          if (worklog.accountId === this.source_user && worklog.issueId === issue.id) {
+                            let text
+                            try {
+                              text = worklog.comment.content[0].content[0].text
+                            } catch (e) {
+                              text = ''
+                            }
+                            worklogs.push({
+                              worklogId: worklog.id,
+                              taskId: issue.id,
+                              taskDescription: text,
+                              loggedTime: worklog.timeSpent,
+                              checked: (this.isDuplicate(worklog) ? false : true),
+                              is_duplicate: this.isDuplicate(worklog)
+                            })
                           }
-                          worklog.taskId = issue.id
-                          worklog.taskDescription = text
                         })
-                      }
-                    })
+                      })
+                    }
                   })
                 })
               }
@@ -188,11 +231,43 @@
         }
       },
       methods: {
+        isDuplicate(source_worklog) {
+          return this.projects.target.some(project => {
+            if (project.key) {
+              return project.worklogs.some(worklog_array => {
+                return worklog_array.some(target_worklog => {
+                  return target_worklog.started === source_worklog.created
+                })
+              })
+            } else {
+              return false
+            }
+          })
+        },
         handleCheckAllCheckbox() {
+          this.checked_all_not_duplicated = false
           this.checked_all = !this.checked_all
           if (this.checked_all) {
+            this.any_checked_not_duplicated = false
             this.worklogs.map(row => row.checked = true)
             this.any_checked = true
+          } else {
+            this.worklogs.map(row => row.checked = false)
+            this.any_checked = false
+          }
+        },
+        handleCheckAllNotDuplicatedCheckbox() {
+          this.checked_all = false
+          this.checked_all_not_duplicated = !this.checked_all_not_duplicated
+          if (this.checked_all_not_duplicated) {
+            this.worklogs.map(row => {
+              if (row.is_duplicate) {
+                row.checked = false
+              } else {
+                row.checked = true
+                this.any_checked = true
+              }
+            })
           } else {
             this.worklogs.map(row => row.checked = false)
             this.any_checked = false
@@ -214,12 +289,10 @@
           if (turn_on_checked_all) {
             this.checked_all = true
           }
-          const turn_on_any_checked = this.worklogs.some(row => row.checked === true)
-          if (turn_on_any_checked) {
-            this.any_checked = true
-          } else {
-            this.any_checked = false
-          }
+          this.any_checked = this.worklogs.some(row => row.checked === true)
+          const turn_on_checked_all_not_duplicated = this.worklogs.filter(row => row.is_duplicate === false).every(duplicated_row => duplicated_row.checked === true)
+          const have_at_least_one_checked_duplicate = this.worklogs.filter(row => row.is_duplicate === true).some(not_duplicated_row => not_duplicated_row.checked === true)
+          this.checked_all_not_duplicated = turn_on_checked_all_not_duplicated && !have_at_least_one_checked_duplicate;
         },
         submit() {
           const agree = confirm("Log selected times in target JIRA?");
@@ -252,8 +325,12 @@
               axios
                 .post(`./jira/submit`, data)
                 .then(response => {
-                  this.wait = false
                   alert(response.data)
+                  axios.get(`./jira/projects-from-to?&from=${this.from}&to=${this.to}`)
+                  .then(response => {
+                    this.projects = response.data
+                    this.init(this.from, this.to)
+                  })
                 })
             } else {
               alert('Incorrect or incomplete data!')
@@ -322,7 +399,8 @@
             time.setMonth(time.getMonth() - 1);
             this.from = time.toISOString().slice(0, 10)
           }
-          this.wait = false
+          this.are_projects_loading = false
+          this.are_users_loading = false
         },
         dateFromWasChanged(value) {
           this.wait = true

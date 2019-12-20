@@ -19,7 +19,7 @@ jira_transfer_logged_time.jira:
 jira_transfer_logged_time.jira-projects:
   path: '/jira/projects'
   defaults:
-    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraTransferController::getJiraProjects'
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::getJiraProjects'
     _title: ''
   requirements:
     _permission: 'access content'
@@ -29,6 +29,33 @@ jira_transfer_logged_time.jira-projects-from-to:
   path: '/jira/projects-from-to'
   defaults:
     _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::projectsFromTo'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-users:
+  path: '/jira/users'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::getJiraUsers'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-issues:
+  path: '/jira/issues'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::getJiraIssues'
+    _title: ''
+  requirements:
+    _permission: 'access content'
+    _user_is_logged_in: 'true'
+
+jira_transfer_logged_time.jira-issues-worklog:
+  path: '/jira/issues-worklogs'
+  defaults:
+    _controller: '\Drupal\jira_transfer_logged_time\Controller\JiraController::getJiraIssuesWorklogs'
     _title: ''
   requirements:
     _permission: 'access content'
