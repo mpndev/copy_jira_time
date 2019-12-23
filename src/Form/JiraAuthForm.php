@@ -116,7 +116,7 @@ class JiraAuthForm extends FormBase {
     $userData->set('jira_transfer_logged_time', $this->currentUser()->id(), 'jira_source_namespace', $source_jira_namespace);
     $userData->set('jira_transfer_logged_time', $this->currentUser()->id(), 'jira_target_namespace', $target_jira_namespace);
 
-    $form_state->setRedirect('jira_transfer_logged_time.transfer_form');
+    $form_state->setRedirect('jira_transfer_logged_time.jira');
     return;
   }
 }
