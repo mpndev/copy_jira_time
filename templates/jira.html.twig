@@ -1,519 +1,166 @@
-{#
-/**
- * - initial_data: {
- *    jira_email,
- *    jira_token,
- *    source_jira_namespace,
- *    target_jira_namespace
- * }
- */
-#}
-
 {% verbatim %}
-<div id="jira">
-  <p>Select project from the source JIRA:</p>
-  <div v-if="are_source_users_loading" style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  <select v-else v-model="source_project" @change="checked_all = false">
-    <option v-for="project in select_options_for_source_projects" :value="project.key">{{ project.name }}</option>
-  </select>
-
-  <br>
-  <br>
-
-  <p>Select the starting date (included) for the worklogs:</p>
-  <input type="date" v-model="from" @change="dateFromWasChanged($event.target.value)">
-  <br>
-  <br>
-  
-  <p>Select the end date (included) for the worklogs:</p>
-  <input type="date" v-model="to" @change="dateToWasChanged($event.target.value)">
-  
-  <br>
-  <br>
-
-  <p>Select user from the source JIRA:</p>
-  <div v-if="are_source_users_loading" style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  <select v-else v-model="source_user" @change="checked_all = false">
-    <option v-for="user in select_options_for_source_users" :value="user.accountId">{{ user.displayName }}</option>
-  </select>
-
-  <table v-if="everything_is_loaded">
-    <thead>
-      <tr v-for="heading in table_headings">
-        <th>
-          <div style="display: inline-block">
-            <label for="select-all">select all</label>
-            <input id="select-all" type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all">
-          </div>
-          <div style="display: inline-block;border-left:1px solid #fff;padding-left:10px;margin-left:10px">
-            <label for="select-not-duplicated">select all not duplicated</label>
-            <input id="select-not-duplicated" type="checkbox" @change="handleCheckAllNotDuplicatedCheckbox()"
-            :checked="checked_all_not_duplicated">
-          </div>
-        </th>
-        <th>{{ heading[1] }}</th>
-        <th>{{ heading[2] }}</th>
-        <th>{{ heading[3] }}</th>
-        <th>{{ heading[4] }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(row, row_index) in table_rows" :style="row.is_duplicate ? {backgroundColor:'orange'} : ''">
-        <td>
-          <input type="checkbox" :checked="row.checked" @input="rowWasClicked(row_index)">
-        </td>
-        <td>
-          {{ row.worklogId }}
-        </td>
-        <td>
-          {{ row.taskId }}
-        </td>
-        <td>
-          {{ row.taskDescription }}
-        </td>
-        <td>
-          {{ row.loggedTime }}
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <div v-else style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  
-  <br>
-  <br>
-
-  <p>Select project from the target JIRA:</p>
-  <div v-if="are_target_projects_loading" style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  <select v-else v-model="target_project">
-    <option v-for="project in select_options_for_target_projects" :value="project.key">{{ project.name }}</option>
-  </select>
-  
-  <br>
-  <br>
-
-  <p>Select user from the target JIRA:</p>
-  <div v-if="are_target_users_loading" style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  <div v-else>
-    <select v-model="target_user">
-      <option v-for="user in select_options_for_target_users" :value="user.accountId">{{ user.displayName }}</option>
+<div id="jira" v-cloak>
+  <label for="select_options_for_source_projects">
+    <div v-if="are_source_users_loading" class="nyan-cat"></div>
+    <select v-else v-model="source_project" @change="checked_all = false" id="select_options_for_source_projects">
+      <option v-for="project in select_options_for_source_projects" :value="project.key">{{ project.name }}</option>
     </select>
+  </label>
+
+  <br>
+  <br>
+
+  <label for="from">
+    from <input type="date" v-model="from" @change="dateFromWasChanged($event.target.value)" id="from">
+  </label>
+  
+  <br>
+  <br>
+  
+  <label for="to">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to <input type="date" v-model="to" @change="dateToWasChanged($event.target.value)" id="to">
+  </label>
+
+  <br>
+  <br>
+
+  <transition name="bounce-source-users">
+    <label v-if="source_project && from && to" for="select_options_for_source_users">
+      <div v-if="are_source_users_loading"  class="nyan-cat"></div>
+      <select v-else v-model="source_user" @change="checked_all = false" id="select_options_for_source_users">
+        <option v-for="user in select_options_for_source_users" :value="user.accountId">{{ user.displayName }}</option>
+      </select>
+    </label>
+  </transition>
+
+  <div v-if="source_project && from && to && source_user" class="wrapper-tools">
+    
+    <transition name="bounce-wrapper-select-all">
+      <div class="wrapper-select-all">
+        <label for="select-all" class="select-all-label">
+        <input id="select-all" type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all" class="select-all-input">
+        select all
+        </label>
+      </div>
+    </transition>
+    <transition name="bounce-wrapper-select-all-not-duplicated">
+      <div class="wrapper-select-all-not-duplicated">
+        <label for="select-not-duplicated" class="select-all-not-duplicated-label">
+        <input id="select-not-duplicated" type="checkbox" @change="handleCheckAllNotDuplicatedCheckbox()"
+        :checked="checked_all_not_duplicated" class="select-all-not-duplicated-input">
+        select all not duplicated
+        </label>
+      </div>
+    </transition>
+    <transition name="bounce-legend-duplicated">
+      <div class="legend-duplicated" @mouseover="low_opacity_for_duplicated = true" @mouseleave="low_opacity_for_duplicated = false">
+        <span class="legend-duplicated-text">&#9632;</span> - not logged yet
+      </div>
+    </transition>
+    <transition name="bounce-legend-not-duplicated">
+      <div class="legend-not-duplicated" @mouseover="low_opacity_for_not_duplicated = true" @mouseleave="low_opacity_for_not_duplicated = false">
+        <span class="legend-not-duplicated-text">&#9632;</span> - already logged
+      </div>
+    </transition>
+  </div>
+  <div v-if="everything_is_loaded">
+    <transition name="bounce-table-data">
+      <table v-if="source_project && from && to && source_user">
+        <thead>
+          <tr v-for="heading in table_headings">
+            <th></th>
+            <th>{{ heading[1] }}</th>
+            <th>{{ heading[2] }}</th>
+            <th>{{ heading[3] }}</th>
+            <th>{{ heading[4] }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, row_index) in table_rows" :class="{'make-me-orange': row.is_duplicate, 'make-me-invisible': (row.is_duplicate && low_opacity_for_duplicated || !row.is_duplicate && low_opacity_for_not_duplicated)}">
+            <td>
+              <input type="checkbox" :checked="row.checked" @input="rowWasClicked(row_index)">
+            </td>
+            <td>
+              {{ row.worklogId }}
+            </td>
+            <td>
+              {{ row.taskId }}
+            </td>
+            <td>
+              <input type="text" v-model="row.taskDescription">
+            </td>
+            <td>
+              {{ row.loggedTime }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </transition>
   </div>
 
   <br>
   <br>
-  
-  <p>Email of the user you wish to log time:</p>
-  <input type="email" v-model="target_email">
+
+  <transition name="bounce-target-project">
+    <label v-if="source_project && from && to && source_user && any_checked" for="select_options_for_target_projects">
+      <div v-if="are_target_projects_loading"  class="nyan-cat"></div>
+      <select v-else v-model="target_project" id="select_options_for_target_projects">
+        <option v-for="project in select_options_for_target_projects" :value="project.key">{{ project.name }}</option>
+      </select>
+    </label>
+  </transition>
   
   <br>
   <br>
 
-  <p>Token of the user you wish to log time:</p>
-  <input type="text" v-model="target_token">
+  <transition name="bounce-target-user">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project" for="select_options_for_target_user">
+      <div v-if="are_target_users_loading" class="nyan-cat"></div>
+      <div v-else>
+        <select v-model="target_user" id="select_options_for_target_user">
+          <option v-for="user in select_options_for_target_users" :value="user.accountId">{{ user.displayName }}</option>
+        </select>
+      </div>
+    </label>
+  </transition>
+
+  <br>
+  <br>
   
+  <transition name="bounce-email">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user" for="email">
+      <input type="email" v-model="target_email" id="email" placeholder="target user email">
+    </label>
+  </transition>
+
   <br>
   <br>
 
-  <p>Select issue from the target JIRA:</p>
-  <div v-if="are_target_issues_loading" style="width:50px;height:50px;z-index: 9999;display: flex;justify-content: center;align-items: center;border: 2px solid #fff;color: #fff;background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;background-size: cover;border-radius: 50%;"></div>
-  <div v-else>
-    <select v-model="target_issue">
-      <option v-for="issue in select_options_for_target_issues" :value="issue.id">{{ issue.key }}</option>
-    </select>
-  </div>
-  
+  <transition name="bounce-token">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email" for="token">
+      <input type="text" v-model="target_token" id="token" placeholder="target user token">
+    </label>
+  </transition>
+
   <br>
   <br>
-  
-  <button @click="submit">Submit</button>
+
+  <transition name="bounce-target-user">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email && target_token && target_token.length > 23" for="select_options_for_target_issues">
+      <div v-if="are_target_issues_loading" class="nyan-cat"></div>
+      <div v-else>
+        <select v-model="target_issue" id="select_options_for_target_issues">
+          <option v-for="issue in select_options_for_target_issues" :value="issue.id">{{ issue.key }}</option>
+        </select>
+      </div>
+    </label>
+  </transition>
+
+  <br>
+  <br>
+
+  <transition name="bounce-submit">
+    <button v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email && target_token && target_token.length > 23 && target_issue" @click="submit">Submit</button>
+  </transition>
 </div>
 {% endverbatim %}
-
-<script>
-  document.addEventListener("DOMContentLoaded", function(event) {
-    new Vue({
-      el: '#jira',
-      data: {
-        projects: [],
-        host: {{ initial_data | raw }}.host,
-        email: {{ initial_data | raw }}.jira_email,
-        token: {{ initial_data | raw }}.jira_token,
-        source_namespace: {{ initial_data | raw }}.source_jira_namespace,
-        target_namespace: {{ initial_data | raw }}.target_jira_namespace,
-        source_project: null,
-        from: null,
-        to: null,
-        source_user: null,
-        target_project: null,
-        target_issue: null,
-        target_user: null,
-        target_email: '',
-        target_token: '',
-        table_headings: [[null, 'Worklog ID', 'Task ID', 'Task Description', 'Logged Time']],
-        checked_all: false,
-        checked_all_not_duplicated: true,
-        any_checked: false,
-        are_source_projects_loading: true,
-        are_source_users_loading: true,
-        are_source_issues_loading: true,
-        are_source_worklogs_loading: true,
-        are_target_projects_loading: true,
-        are_target_users_loading: true,
-        are_target_issues_loading: true,
-        are_target_worklogs_loading: true
-      },
-      created() {
-        this.resetData(null, null, true)
-      },
-      computed: {
-        everything_is_loaded() {
-          return (!this.are_source_projects_loading && !this.are_source_users_loading && !this.are_source_issues_loading && !this.are_source_worklogs_loading && !this.are_target_projects_loading && !this.are_target_users_loading && !this.are_target_issues_loading && !this.are_target_worklogs_loading)
-        },
-        select_options_for_source_projects() {
-          const projects = [{
-            key: null,
-            name: '- Select -'
-          }]
-          this.projects.source.map(project => {
-            projects.push(project)
-          })
-          return projects
-        },
-        select_options_for_source_users() {
-          const users = [{
-            accountId: null,
-            displayName: '- Select -'
-          }]
-          this.projects.source.map(project => {
-            if (project.key === this.source_project) {
-              project.users.map(user => {
-                users.push(user)
-              })
-            }
-          })
-          return users
-        },
-        select_options_for_target_projects() {
-          const projects = [{
-            key: null,
-            name: '- Select -'
-          }]
-          this.projects.target.map(project => {
-            projects.push(project)
-          })
-          return projects
-        },
-        select_options_for_target_users() {
-          const users = [{
-            accountId: null,
-            displayName: '- Select -'
-          }]
-          this.projects.target.map(project => {
-            if (project.key === this.target_project) {
-              project.users.map(user => {
-                users.push(user)
-              })
-            }
-          })
-          return users
-        },
-        select_options_for_target_issues() {
-          const issues = [{
-            id: null,
-            key: '- Select -'
-          }]
-          this.projects.target.map(project => {
-            if (project.key === this.target_project) {
-              project.users.map(user => {
-                if (user.accountId === this.target_user) {
-                  user.issues.map(issue => {
-                    issues.push(issue)
-                  })
-                }
-              })
-            }
-          })
-          return issues
-        },
-        table_rows() {
-          const rows = []
-          this.projects.source.map(project => {
-            if (project.key === this.source_project) {
-              project.users.map(user => {
-                if (user.accountId === this.source_user) {
-                  user.issues.map(issue => {
-                    issue.worklogs.map(worklog => {
-                      if (worklog.accountId === user.accountId) {
-                        let text
-                        try {
-                          text = worklog.comment.content[0].content[0].text
-                        } catch (e) {
-                          text = ''
-                        }
-                        rows.push({
-                          worklogId: worklog.id,
-                          taskId: issue.id,
-                          taskDescription: text,
-                          loggedTime: worklog.timeSpent,
-                          checked: (this.isDuplicate(worklog) ? false : true),
-                          is_duplicate: this.isDuplicate(worklog)
-                        })
-                      }
-                    })
-                  })
-                }
-              })
-            }
-          })
-          return rows
-        }
-      },
-      methods: {
-        isDuplicate(source_worklog) {
-          return this.projects.target.some(project => {
-            return project.users.some(user => {
-              return user.issues.some(issue => {
-                return issue.worklogs.some(worklog => {
-                  return worklog.started === source_worklog.created
-                })
-              })
-            })
-          })
-        },
-        handleCheckAllCheckbox() {
-          this.checked_all_not_duplicated = false
-          this.checked_all = !this.checked_all
-          if (this.checked_all) {
-            this.any_checked_not_duplicated = false
-            this.table_rows.map(row => row.checked = true)
-            this.any_checked = true
-          } else {
-            this.table_rows.map(row => row.checked = false)
-            this.any_checked = false
-          }
-        },
-        handleCheckAllNotDuplicatedCheckbox() {
-          this.checked_all = false
-          this.checked_all_not_duplicated = !this.checked_all_not_duplicated
-          if (this.checked_all_not_duplicated) {
-            this.table_rows.map(row => {
-              if (row.is_duplicate) {
-                row.checked = false
-              } else {
-                row.checked = true
-                this.any_checked = true
-              }
-            })
-          } else {
-            this.table_rows.map(row => row.checked = false)
-            this.any_checked = false
-          }
-        },
-        rowWasClicked(row_index) {
-          this.checked_all = !this.checked_all
-          this.checked_all = !this.checked_all
-          this.table_rows.map((row, index) =>{
-            if (index === row_index) {
-              row.checked = !row.checked
-            }
-          })
-          const turn_off_checked_all = this.table_rows.some(row => row.checked === false)
-          if (turn_off_checked_all) {
-            this.checked_all = false
-          }
-          const turn_on_checked_all = this.table_rows.every(row => row.checked === true)
-          if (turn_on_checked_all) {
-            this.checked_all = true
-          }
-          this.any_checked = this.table_rows.some(row => row.checked === true)
-          const turn_on_checked_all_not_duplicated = this.table_rows.filter(row => row.is_duplicate === false).every(duplicated_row => duplicated_row.checked === true)
-          const have_at_least_one_checked_duplicate = this.table_rows.filter(row => row.is_duplicate === true).some(not_duplicated_row => not_duplicated_row.checked === true)
-          this.checked_all_not_duplicated = turn_on_checked_all_not_duplicated && !have_at_least_one_checked_duplicate;
-        },
-        submit() {
-          const worklogs = []
-          let preview = []
-          let task
-          let username
-          this.projects.target.map(project => project.users.map(user => {
-            if (user.accountId === this.target_user) {
-              username = user.displayName
-            }
-            user.issues.map(issue => {
-              if (issue.id === this.target_issue) {
-                task = issue.key
-              }
-            })
-          }))
-          this.projects.target.map(project => {
-            if (project.key === this.target_project) {
-              project.users.map(user => {
-                if (user.accountId === this.target_user) {
-                  user.issues.map(issue => {
-                    if (issue.id === this.target_issue) {
-                      issue.worklogs.map(worklog => {
-                        this.table_rows.map(computed_worklog => {
-                          if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
-                            worklogs.push(worklog)
-                            preview.push(`log ${worklog.timeSpent} in JIRA with namespace ${this.target_namespace} in task ${task} for user ${username} with email "${this.target_email}" and token "${this.target_token}".\n\n`)
-                          }
-                        })
-                      })
-                    }
-                  })
-                }
-              })
-            }
-          })
-          preview = preview.join(' ')
-          if (this.target_namespace, this.target_project, this.target_issue, this.target_user, this.target_email, this.target_token, this.any_checked) {
-            const agree = confirm(preview)
-            if (agree) {
-              const data = {
-                namespace: this.target_namespace,
-                project: this.target_project,
-                issue: this.target_issue,
-                user: this.target_user,
-                email: this.target_email,
-                token: this.target_token,
-                worklogs: worklogs
-              }
-              axios
-                .post(`./jira/submit`, data)
-                .then(response => {
-                  this.resetData()
-                  alert(response.data)
-                })
-            }
-          } else {
-            alert('Incorrect or incomplete data!')
-          }
-        },
-        resetData(new_from = null, new_to = null, not_only_source = false) {
-          if (new_to) {
-            this.to = new_to
-          } else {
-            let time = new Date()
-            this.to = time.toISOString().slice(0, 10)
-          }
-          if (new_from) {
-            this.from = new_from
-          } else {
-            let time = new Date()
-            time.setMonth(time.getMonth() - 1);
-            this.from = time.toISOString().slice(0, 10)
-          }
-          this.source_project = null
-          this.source_user = null
-          this.checked_all = false
-          this.checked_all_not_duplicated = true
-          this.any_checked = false
-          this.are_source_projects_loading = true
-          this.are_source_users_loading = true
-          this.are_source_issues_loading = true
-          this.are_source_worklogs_loading = true
-          if (not_only_source) {
-            this.target_project = null
-            this.target_issue = null
-            this.target_user = null
-            this.target_email = ''
-            this.target_token = ''
-            this.are_target_projects_loading = true
-            this.are_target_users_loading = true
-            this.are_target_issues_loading = true
-            this.are_target_worklogs_loading = true
-          }
-          this.fillData(not_only_source)
-        },
-        fillData(not_only_source = false) {
-          axios.get(`./jira/projects?prefix=source`)
-          .then(response => {
-            const projects_quantity = response.data.length
-            this.projects.source = response.data
-            this.projects.source.map((project, project_index) => {
-              if (project_index + 1 === projects_quantity) {
-                this.are_source_projects_loading = false
-              }
-              axios.get(`./jira/users?prefix=${this.source_namespace}`)
-              .then(response => {
-                const users_quantity = response.data.length
-                project.users = response.data
-                project.users.map((user, user_index) => {
-                  if (project_index + 1 === projects_quantity && user_index+1 === users_quantity) {
-                    this.are_source_users_loading = false
-                  }
-                  axios.get(`./jira/issues?prefix=${this.source_namespace}&project_key=${project.key}`)
-                  .then(response => {
-                    const issues_quantity = response.data.length
-                    user.issues = response.data
-                    user.issues.map((issue, issue_index) => {
-                      if (project_index + 1 === projects_quantity && user_index+1 === users_quantity && issue_index+1 === issues_quantity) {
-                        this.are_source_issues_loading = false
-                      }
-                      const users_accounts_ids = project.users.map(user => user = user.accountId)
-                      axios.get(`./jira/issues-worklogs?prefix=${this.source_namespace}&issue_key=${issue.key}&users_accounts_ids=${users_accounts_ids}&start_date=${this.from}&end_date=${this.to}`)
-                      .then(response => {
-                        issue.worklogs = response.data
-                        if (project_index + 1 === projects_quantity && user_index+1 === users_quantity && issue_index+1 === issues_quantity) {
-                          this.are_source_worklogs_loading = false
-                        }
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          })
-          if (not_only_source) {
-            axios.get(`./jira/projects?prefix=target`)
-            .then(response => {
-              const projects_quantity = response.data.length
-              this.projects.target = response.data
-              this.projects.target.map((project, project_index) => {
-                if (project_index+1 === projects_quantity) {
-                  this.are_target_projects_loading = false
-                }
-                axios.get(`./jira/users?prefix=${this.target_namespace}`)
-                .then(response => {
-                  const users_quantity = response.data.length
-                  project.users = response.data
-                  project.users.map((user, user_index) => {
-                    if (project_index+1 === projects_quantity && user_index+1 === users_quantity) {
-                      this.are_target_users_loading = false
-                    }
-                    axios.get(`./jira/issues?prefix=${this.target_namespace}&project_key=${project.key}`)
-                    .then(response => {
-                      const issues_quantity = response.data.length
-                      user.issues = response.data
-                      user.issues.map((issue, issue_index) => {
-                        if (project_index+1 === projects_quantity && user_index+1 === users_quantity && issue_index+1 === issues_quantity) {
-                          this.are_target_issues_loading = false
-                        }
-                        const users_accounts_ids = project.users.map(user => user = user.accountId)
-                        axios.get(`./jira/issues-worklogs?prefix=${this.target_namespace}&issue_key=${issue.key}&users_accounts_ids=${users_accounts_ids}&start_date=${this.from}&end_date=${this.to}`)
-                        .then(response => {
-                          issue.worklogs = response.data
-                          if (project_index+1 === projects_quantity && user_index+1 === users_quantity && issue_index+1 === issues_quantity) {
-                            this.are_target_worklogs_loading = false
-                          }
-                        })
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          }
-        },
-        dateFromWasChanged(value) {
-          this.from = value
-          this.resetData(this.from, this.to)
-        },
-        dateToWasChanged(value) {
-          this.to = value
-          this.resetData(this.from, this.to)
-        }
-      }
-    })
-  })
-</script>

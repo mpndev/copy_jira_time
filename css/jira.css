@@ -1,0 +1,138 @@
+[v-cloak] {
+  display: none;
+}
+
+.nyan-cat {
+  width:50px;
+  height:50px;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #fff;
+  color: #fff;
+  background: url(https://media1.tenor.com/images/acb1f0fd64578c46239226a06fd0b13e/tenor.gif?itemid=15347559) no-repeat center center;
+  background-size: cover;
+  border-radius: 50%;
+}
+
+.wrapper-tools {
+  display: flex;
+  padding-right: 10px;
+  margin-top: 20px;
+  aling-content: center;
+}
+
+.wrapper-select-all {
+  display: flex;
+  align-items: center;
+}
+
+.select-all-label {
+  background-color: rgba(0, 0, 0, 0.51);
+  padding: 8px 15px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.select-all-input {
+  margin-right: 5px;
+}
+
+.wrapper-select-all-not-duplicated {
+  display: flex;
+  align-items: center;
+  border-radius: 50px;
+  margin-left: 15px;
+}
+
+.select-all-not-duplicated-label {
+  background-color: rgba(0, 0, 0, 0.51);
+  padding: 8px 15px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.select-all-not-duplicated-input {
+  margin-right: 5px;
+}
+
+.legend-duplicated {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  border: 1px solid rgba(0, 0, 0, 0.51);
+  padding: 0 15px;
+}
+
+.legend-duplicated-text {
+  color: #efefef;
+  font-size: 30px;
+  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  margin-right: 5px;
+}
+
+.legend-not-duplicated {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.51);
+  padding: 0 15px;
+}
+
+.legend-not-duplicated-text {
+  color: orange;
+  font-size: 30px;
+  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  margin-right: 5px;
+}
+
+.make-me-orange {
+  background-color: orange;
+}
+
+.make-me-invisible {
+  opacity: .1;
+}
+
+.bounce-source-users-enter-active,
+.bounce-wrapper-select-all-enter-active,
+.bounce-wrapper-select-all-not-duplicated-enter-active,
+.bounce-legend-duplicated-enter-active,
+.bounce-legend-not-duplicated-enter-active,
+.bounce-table-data-enter-active,
+.bounce-target-project-enter-active,
+.bounce-target-issue-enter-active,
+.bounce-target-user-enter-active,
+.bounce-email-enter-active,
+.bounce-token-enter-active,
+.bounce-submit-enter-active {
+  animation: bounce-in .5s;
+}
+.bounce-source-users-leave-active,
+.bounce-wrapper-select-all-leave-active,
+.bounce-wrapper-select-all-not-duplicated-leave-active,
+.bounce-legend-duplicated-leave-active,
+.bounce-legend-not-duplicated-leave-active,
+.bounce-table-data-leave-active,
+.bounce-target-project-leave-active,
+.bounce-target-issue-leave-active,
+.bounce-target-user-leave-active,
+.bounce-email-leave-active,
+.bounce-token-leave-active,
+.bounce-submit-leave-active {
+  animation: bounce-in .5s reverse;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
