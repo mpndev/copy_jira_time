@@ -1,5 +1,6 @@
 {% verbatim %}
 <div id="jira" v-cloak>
+  
   <label for="select_options_for_source_projects">
     <div v-if="are_source_users_loading" class="nyan-cat"></div>
     <select v-else v-model="source_project" @change="checked_all = false" id="select_options_for_source_projects">
@@ -10,16 +11,14 @@
   <br>
   <br>
 
-  <label for="from">
-    from <input type="date" v-model="from" @change="dateFromWasChanged($event.target.value)" id="from">
-  </label>
-  
-  <br>
-  <br>
-  
-  <label for="to">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to <input type="date" v-model="to" @change="dateToWasChanged($event.target.value)" id="to">
-  </label>
+  <div class="wrapper-from-to">
+    <label for="from">
+      from: <input type="date" v-model="from" @change="dateFromWasChanged($event.target.value)" id="from">
+    </label>
+    <label for="to">
+      &nbsp;&nbsp;to: <input type="date" v-model="to" @change="dateToWasChanged($event.target.value)" id="to">
+    </label>
+  </div>
 
   <br>
   <br>
@@ -33,18 +32,19 @@
     </label>
   </transition>
 
-  <div v-if="source_project && from && to && source_user" class="wrapper-tools">
+  <div class="wrapper-tools">
     
     <transition name="bounce-wrapper-select-all">
-      <div class="wrapper-select-all">
+      <div v-if="source_project && from && to && source_user" class="wrapper-select-all">
         <label for="select-all" class="select-all-label">
         <input id="select-all" type="checkbox" @change="handleCheckAllCheckbox()" :checked="checked_all" class="select-all-input">
         select all
         </label>
       </div>
     </transition>
+
     <transition name="bounce-wrapper-select-all-not-duplicated">
-      <div class="wrapper-select-all-not-duplicated">
+      <div v-if="source_project && from && to && source_user" class="wrapper-select-all-not-duplicated">
         <label for="select-not-duplicated" class="select-all-not-duplicated-label">
         <input id="select-not-duplicated" type="checkbox" @change="handleCheckAllNotDuplicatedCheckbox()"
         :checked="checked_all_not_duplicated" class="select-all-not-duplicated-input">
@@ -52,18 +52,22 @@
         </label>
       </div>
     </transition>
+
     <transition name="bounce-legend-duplicated">
-      <div class="legend-duplicated" @mouseover="low_opacity_for_duplicated = true" @mouseleave="low_opacity_for_duplicated = false">
+      <div v-if="source_project && from && to && source_user" class="legend-duplicated" @mouseover="low_opacity_for_duplicated = true" @mouseleave="low_opacity_for_duplicated = false">
         <span class="legend-duplicated-text">&#9632;</span> - not logged yet
       </div>
     </transition>
+
     <transition name="bounce-legend-not-duplicated">
-      <div class="legend-not-duplicated" @mouseover="low_opacity_for_not_duplicated = true" @mouseleave="low_opacity_for_not_duplicated = false">
+      <div v-if="source_project && from && to && source_user" class="legend-not-duplicated" @mouseover="low_opacity_for_not_duplicated = true" @mouseleave="low_opacity_for_not_duplicated = false">
         <span class="legend-not-duplicated-text">&#9632;</span> - already logged
       </div>
     </transition>
+
   </div>
   <div v-if="everything_is_loaded">
+    
     <transition name="bounce-table-data">
       <table v-if="source_project && from && to && source_user">
         <thead>
@@ -96,6 +100,7 @@
         </tbody>
       </table>
     </transition>
+
   </div>
 
   <br>
@@ -137,7 +142,7 @@
   <br>
 
   <transition name="bounce-token">
-    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email" for="token">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && validateEmail(target_email)" for="token">
       <input type="text" v-model="target_token" id="token" placeholder="target user token">
     </label>
   </transition>
@@ -146,7 +151,7 @@
   <br>
 
   <transition name="bounce-target-user">
-    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email && target_token && target_token.length > 23" for="select_options_for_target_issues">
+    <label v-if="source_project && from && to && source_user && any_checked && target_project && target_user && validateEmail(target_email) && target_token && target_token.length > 23" for="select_options_for_target_issues">
       <div v-if="are_target_issues_loading" class="nyan-cat"></div>
       <div v-else>
         <select v-model="target_issue" id="select_options_for_target_issues">
@@ -160,7 +165,7 @@
   <br>
 
   <transition name="bounce-submit">
-    <button v-if="source_project && from && to && source_user && any_checked && target_project && target_user && target_email && target_token && target_token.length > 23 && target_issue" @click="submit">Submit</button>
+    <button v-if="source_project && from && to && source_user && any_checked && target_project && target_user && validateEmail(target_email) && target_token && target_token.length > 23 && target_issue" @click="submit">Submit</button>
   </transition>
 </div>
 {% endverbatim %}

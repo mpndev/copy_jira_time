@@ -16,6 +16,10 @@
   border-radius: 50%;
 }
 
+.wrapper-from-to {
+  display: flex;
+}
+
 .wrapper-tools {
   display: flex;
   padding-right: 10px;
@@ -98,10 +102,6 @@
 }
 
 .bounce-source-users-enter-active,
-.bounce-wrapper-select-all-enter-active,
-.bounce-wrapper-select-all-not-duplicated-enter-active,
-.bounce-legend-duplicated-enter-active,
-.bounce-legend-not-duplicated-enter-active,
 .bounce-table-data-enter-active,
 .bounce-target-project-enter-active,
 .bounce-target-issue-enter-active,
@@ -112,10 +112,6 @@
   animation: bounce-in .5s;
 }
 .bounce-source-users-leave-active,
-.bounce-wrapper-select-all-leave-active,
-.bounce-wrapper-select-all-not-duplicated-leave-active,
-.bounce-legend-duplicated-leave-active,
-.bounce-legend-not-duplicated-leave-active,
 .bounce-table-data-leave-active,
 .bounce-target-project-leave-active,
 .bounce-target-issue-leave-active,
@@ -125,11 +121,72 @@
 .bounce-submit-leave-active {
   animation: bounce-in .5s reverse;
 }
+
+.bounce-table-data-enter-active {
+  animation: bounce-table-data .5s;
+}
+.bounce-table-data-leave-active {
+  animation: bounce-table-data .5s reverse;
+}
+
+.bounce-wrapper-select-all-enter-active {
+  animation: bounce-in-after-first-bounce 1s;
+}
+.bounce-wrapper-select-all-leave-active {
+  animation: bounce-in-after-first-bounce 1s reverse;
+}
+
+.bounce-wrapper-select-all-not-duplicated-enter-active {
+  animation: bounce-in-after-first-bounce 1.25s;
+}
+.bounce-wrapper-select-all-not-duplicated-leave-active {
+  animation: bounce-in-after-first-bounce 1.25s reverse;
+}
+
+.bounce-legend-duplicated-enter-active {
+  animation: bounce-in-after-first-bounce 1.5s;
+}
+.bounce-legend-duplicated-leave-active {
+  animation: bounce-in-after-first-bounce 1.5s reverse;
+}
+
+.bounce-legend-not-duplicated-enter-active {
+  animation: bounce-in-after-first-bounce 1.75s;
+}
+.bounce-legend-not-duplicated-leave-active {
+  animation: bounce-in-after-first-bounce 1.75s reverse;
+}
+@keyframes bounce-table-data {
+  0% {
+    transform: translateX(+100%);
+  }
+  75% {
+    transform: translateX(-20%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
 @keyframes bounce-in {
   0% {
     transform: scale(0);
   }
   50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bounce-in-after-first-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(0);
+  }
+  75% {
+    opacity: 1;
     transform: scale(1.5);
   }
   100% {

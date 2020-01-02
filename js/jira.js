@@ -212,6 +212,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
           })
         })
       },
+      validateEmail(email) {
+        const email_regexp = /^\S+@\S+$/
+        return email_regexp.test(String(email).toLowerCase())
+      },
       handleCheckAllCheckbox() {
         this.checked_all_not_duplicated = false
         this.checked_all = !this.checked_all
