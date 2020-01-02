@@ -154,20 +154,18 @@ document.addEventListener("DOMContentLoaded", function(event) {
             }
           })
         }))
-        this.projects.target.map(project => {
-          if (project.key === this.target_project) {
+        this.projects.source.map(project => {
+          if (project.key === this.source_project) {
             project.users.map(user => {
-              if (user.accountId === this.target_user) {
+              if (user.accountId === this.source_user) {
                 user.issues.map(issue => {
-                  if (issue.id === this.target_issue) {
-                    issue.worklogs.map(worklog => {
-                      this.table_rows.map(computed_worklog => {
-                        if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
-                          preview.push(`log "${worklog.timeSpent}" with description "${computed_worklog.taskDescription}" in JIRA with namespace "${this.target_namespace}" in task "${task}" for user "${username}" with email "${this.target_email}" and token "${this.target_token}".\n\n`)
-                        }
-                      })
+                  issue.worklogs.map(worklog => {
+                    this.table_rows.map(computed_worklog => {
+                      if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
+                        preview.push(`log "${worklog.timeSpent}" with description "${computed_worklog.taskDescription}" in JIRA with namespace "${this.target_namespace}" in task "${task}" for user "${username}" with email "${this.target_email}" and token "${this.target_token}".\n\n`)
+                      }
                     })
-                  }
+                  })
                 })
               }
             })
@@ -177,21 +175,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
       },
       worklogs_to_submit() {
         let worklogs = []
-        this.projects.target.map(project => {
-          if (project.key === this.target_project) {
+        this.projects.source.map(project => {
+          if (project.key === this.source_project) {
             project.users.map(user => {
-              if (user.accountId === this.target_user) {
+              if (user.accountId === this.source_user) {
                 user.issues.map(issue => {
-                  if (issue.id === this.target_issue) {
-                    issue.worklogs.map(worklog => {
-                      this.table_rows.map(computed_worklog => {
-                        if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
-                          worklog.taskDescription = computed_worklog.taskDescription
-                          worklogs.push(worklog)
-                        }
-                      })
+                  issue.worklogs.map(worklog => {
+                    this.table_rows.map(computed_worklog => {
+                      if (computed_worklog.worklogId === worklog.id && computed_worklog.checked === true) {
+                        worklog.taskDescription = computed_worklog.taskDescription
+                        worklogs.push(worklog)
+                      }
                     })
-                  }
+                  })
                 })
               }
             })
